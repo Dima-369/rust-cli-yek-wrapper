@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use arboard::Clipboard;
+use clap::Parser;
 use num_format::{Locale, ToFormattedString};
 use serde::Deserialize;
-use std::process::Command;
-use clap::Parser;
 use std::collections::HashMap;
 use std::path::Path;
+use std::process::Command;
 
 /// A struct that represents a single file's data from the yek JSON output.
 /// We use serde's `derive` macro to automatically handle deserialization.
@@ -77,8 +77,11 @@ fn main() -> Result<()> {
     // Prepare formatted combined content for clipboard
     let mut formatted_combined_content_for_clipboard = String::new();
     for file in &files {
-        formatted_combined_content_for_clipboard.push_str(&format!(">>>>>> {}
-", file.filename));
+        formatted_combined_content_for_clipboard.push_str(&format!(
+            ">>>>>> {}
+",
+            file.filename
+        ));
         formatted_combined_content_for_clipboard.push_str(&file.content);
         if !file.content.ends_with('\n') {
             formatted_combined_content_for_clipboard.push('\n');
