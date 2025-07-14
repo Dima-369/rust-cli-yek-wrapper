@@ -139,7 +139,7 @@ fn main() -> Result<()> {
     println!("\n✅ Copied to clipboard");
     let mut clipboard = Clipboard::new().context("Failed to initialize clipboard.")?;
     clipboard
-        .set_text(&format!("{}", formatted_combined_content_for_clipboard))
+        .set_text(formatted_combined_content_for_clipboard.to_string())
         .context("Failed to copy content to clipboard.")?;
 
     Ok(())
