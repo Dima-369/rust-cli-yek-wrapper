@@ -83,7 +83,9 @@ fn main() -> Result<()> {
             file.filename
         ));
         formatted_combined_content_for_clipboard.push_str(&file.content);
-        formatted_combined_content_for_clipboard.push('\n');
+        if !file.content.ends_with('\n') {
+            formatted_combined_content_for_clipboard.push('\n');
+        }
     }
 
     // --- Step 4: Aggregate and display top N largest directories ---
