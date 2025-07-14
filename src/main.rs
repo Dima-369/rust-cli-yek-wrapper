@@ -79,10 +79,9 @@ fn main() -> Result<()> {
     for (i, file) in files.iter().enumerate() {
         formatted_combined_content_for_clipboard.push_str(&format!(
             ">>>> {}
-",
-            file.filename
+{}",
+            file.filename, &file.content
         ));
-        formatted_combined_content_for_clipboard.push_str(&file.content);
         if i < files.len() - 1 {
             formatted_combined_content_for_clipboard.push('\n');
         }
