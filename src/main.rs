@@ -76,14 +76,16 @@ fn main() -> Result<()> {
 
     // Prepare formatted combined content for clipboard
     let mut formatted_combined_content_for_clipboard = String::new();
-    for file in &files {
+    for (i, file) in files.iter().enumerate() {
         formatted_combined_content_for_clipboard.push_str(&format!(
             ">>>> {}
 ",
             file.filename
         ));
         formatted_combined_content_for_clipboard.push_str(&file.content);
-        formatted_combined_content_for_clipboard.push('\n');
+        if i < files.len() - 1 {
+            formatted_combined_content_for_clipboard.push('\n');
+        }
     }
 
     // --- Step 4: Aggregate and display top N largest directories ---
