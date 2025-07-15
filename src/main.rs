@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
-/// A struct that represents a single file\'s data from the yek JSON output.
-/// We use serde\'s `derive` macro to automatically handle deserialization.
+/// A struct that represents a single file's data from the yek JSON output.
+/// We use serde's `derive` macro to automatically handle deserialization.
 #[derive(Deserialize, Debug)]
 struct YekFile {
     filename: String,
@@ -40,19 +40,19 @@ fn main() -> Result<()> {
     let output = Command::new("yek")
         .arg("--json")
         .output()
-        .context("Failed to execute `yek --json`. Is \'yek\' in your PATH?")?;
+        .context("Failed to execute `yek --json`. Is 'yek' in your PATH?")?;
 
     if !output.status.success() {
         // If the command failed, print stderr and exit.
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!(
-            "`yek --json` failed with status {}:\\n{}",
+            "`yek --json` failed with status {}:\n{}",
             output.status,
             stderr
         );
     }
 
-    // --- Step 2: Parse the JSON directly from the command\'s output ---
+    // --- Step 2: Parse the JSON directly from the command's output ---
     let mut files: Vec<YekFile> = serde_json::from_slice(&output.stdout)
         .context("Failed to parse JSON from `yek` output. Is the format correct?")?;
 
@@ -105,38 +105,51 @@ fn main() -> Result<()> {
     let mut sorted_dirs: Vec<(String, (usize, usize))> = dir_sizes.into_iter().collect();
     sorted_dirs.sort_by(|a, b| b.1.0.cmp(&a.1.0));
 
-    println!("\nLargest directories\n");
+    println!("
+Largest directories
+");
     for (dir, (size, lines)) in sorted_dirs.iter().take(args.top_dir_count) {
-        let tokens = estimate_tokens(&String::from_utf8_lossy(&vec![0; *size])); // Approximate tokens for directory size
-        println!(
-            "- {} (~{} tokens, {} lines, {} chars)",
-            if dir.is_empty() { "." } else { dir },
-            tokens.to_formatted_string(&Locale::en),
-            lines.to_formatted_string(&Locale::en),
-            size.to_formatted_string(&Locale::en)
-        );
+        if *size == 0 {
+            println!("- {} (empty)", if dir.is_empty() { "." } else { dir });
+        } else {
+            let tokens = estimate_tokens(&String::from_utf8_lossy(&vec![0; *size])); // Approximate tokens for directory size
+            println!(
+                "- {} (~{} tokens, {} lines, {} chars)",
+                if dir.is_empty() { "." } else { dir },
+                tokens.to_formatted_string(&Locale::en),
+                lines.to_formatted_string(&Locale::en),
+                size.to_formatted_string(&Locale::en)
+            );
+        }
     }
 
     // --- Step 5: Find and display the top N largest files ---
     // Sort files by the length of their content in descending order.
     files.sort_by(|a, b| b.content.len().cmp(&a.content.len()));
 
-    println!("\nLargest files\n");
+    println!("
+Largest files
+");
     for file in files.iter().take(args.top_file_count) {
-        let tokens = estimate_tokens(&file.content);
-        println!(
-            "- {} (~{} tokens, {} lines, {} chars)",
-            file.filename,
-            tokens.to_formatted_string(&Locale::en),
-            file.content
-                .lines()
-                .count()
-                .to_formatted_string(&Locale::en), // Calculate lines directly
-            file.content.len().to_formatted_string(&Locale::en)
-        );
+        if file.content.len() == 0 {
+            println!("- {} (empty)", file.filename);
+        } else {
+            let tokens = estimate_tokens(&file.content);
+            println!(
+                "- {} (~{} tokens, {} lines, {} chars)",
+                file.filename,
+                tokens.to_formatted_string(&Locale::en),
+                file.content
+                    .lines()
+                    .count()
+                    .to_formatted_string(&Locale::en), // Calculate lines directly
+                file.content.len().to_formatted_string(&Locale::en)
+            );
+        }
     }
 
-    println!("\n✅ Copied to clipboard");
+    println!("
+✅ Copied to clipboard");
     let mut clipboard = Clipboard::new().context("Failed to initialize clipboard.")?;
     clipboard
         .set_text(formatted_combined_content_for_clipboard.to_string())
