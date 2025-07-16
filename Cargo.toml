@@ -10,3 +10,4 @@ arboard = "3.4"
 anyhow = "1.0"
 num-format = "0.4.4"
 clap = { version = "4.0", features = ["derive"] }
+colored = "2.0"

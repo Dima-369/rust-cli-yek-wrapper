@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use arboard::Clipboard;
 use clap::Parser;
+use colored::*;
 use num_format::{Locale, ToFormattedString};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -26,6 +27,10 @@ struct Args {
     /// Number of top directories to display
     #[arg(long, default_value_t = 6)]
     top_dir_count: usize,
+
+    /// Warn about large files by line count (highlight in orange)
+    #[arg(long, default_value_t = 300)]
+    warn_large_files_by_line_count: usize,
 }
 
 /// Approximate token estimation, assuming 4 characters per token.
@@ -135,16 +140,20 @@ Largest files
             println!("- {} (empty)", file.filename);
         } else {
             let tokens = estimate_tokens(&file.content);
-            println!(
+            let line_count = file.content.lines().count();
+            let file_info = format!(
                 "- {} (~{} tokens, {} lines, {} chars)",
                 file.filename,
                 tokens.to_formatted_string(&Locale::en),
-                file.content
-                    .lines()
-                    .count()
-                    .to_formatted_string(&Locale::en), // Calculate lines directly
+                line_count.to_formatted_string(&Locale::en),
                 file.content.len().to_formatted_string(&Locale::en)
             );
+            
+            if line_count >= args.warn_large_files_by_line_count {
+                println!("{}", file_info.bright_yellow());
+            } else {
+                println!("{}", file_info);
+            }
         }
     }
 
