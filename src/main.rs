@@ -112,8 +112,7 @@ fn main() -> Result<()> {
 
     println!(
         "
-Largest directories
-"
+Largest directories"
     );
     for (dir, (size, lines)) in sorted_dirs.iter().take(args.top_dir_count) {
         if *size == 0 {
@@ -136,8 +135,7 @@ Largest directories
 
     println!(
         "
-Largest files
-"
+Largest files"
     );
     for file in files.iter().take(args.top_file_count) {
         if file.content.is_empty() {
