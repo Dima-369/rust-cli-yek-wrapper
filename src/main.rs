@@ -79,12 +79,12 @@ fn main() -> Result<()> {
     let file_count = files.len();
     let token_count = estimate_tokens(&raw_combined_content);
 
-    println!("📂 Files: {}", file_count.to_formatted_string(&Locale::en));
     println!(
-        "🧮 Estimated tokens: ~{}",
-        token_count.to_formatted_string(&Locale::en)
+        "~{} tokens / {} files / {} lines",
+        token_count.to_formatted_string(&Locale::en),
+        file_count.to_formatted_string(&Locale::en),
+        total_lines.to_formatted_string(&Locale::en)
     );
-    println!("📄 Lines: {}", total_lines.to_formatted_string(&Locale::en));
 
     // Prepare formatted combined content for clipboard
     let mut formatted_combined_content_for_clipboard = String::new();
@@ -110,9 +110,11 @@ fn main() -> Result<()> {
     let mut sorted_dirs: Vec<(String, (usize, usize))> = dir_sizes.into_iter().collect();
     sorted_dirs.sort_by(|a, b| b.1.0.cmp(&a.1.0));
 
-    println!("
+    println!(
+        "
 Largest directories
-");
+"
+    );
     for (dir, (size, lines)) in sorted_dirs.iter().take(args.top_dir_count) {
         if *size == 0 {
             println!("- {} (empty)", if dir.is_empty() { "." } else { dir });
@@ -132,9 +134,11 @@ Largest directories
     // Sort files by the length of their content in descending order.
     files.sort_by(|a, b| b.content.len().cmp(&a.content.len()));
 
-    println!("
+    println!(
+        "
 Largest files
-");
+"
+    );
     for file in files.iter().take(args.top_file_count) {
         if file.content.len() == 0 {
             println!("- {} (empty)", file.filename);
@@ -148,7 +152,7 @@ Largest files
                 line_count.to_formatted_string(&Locale::en),
                 file.content.len().to_formatted_string(&Locale::en)
             );
-            
+
             if line_count >= args.warn_large_files_by_line_count {
                 println!("{}", file_info.bright_yellow());
             } else {
@@ -157,8 +161,10 @@ Largest files
         }
     }
 
-    println!("
-✅ Copied to clipboard");
+    println!(
+        "
+✅ Copied to clipboard"
+    );
     let mut clipboard = Clipboard::new().context("Failed to initialize clipboard.")?;
     clipboard
         .set_text(formatted_combined_content_for_clipboard.to_string())
@@ -166,3 +172,4 @@ Largest files
 
     Ok(())
 }
+
