@@ -140,7 +140,7 @@ Largest files
 "
     );
     for file in files.iter().take(args.top_file_count) {
-        if file.content.len() == 0 {
+        if file.content.is_empty() {
             println!("- {} (empty)", file.filename);
         } else {
             let tokens = estimate_tokens(&file.content);
@@ -156,7 +156,7 @@ Largest files
             if line_count >= args.warn_large_files_by_line_count {
                 println!("{}", file_info.bright_yellow());
             } else {
-                println!("{}", file_info);
+                println!("{file_info}");
             }
         }
     }
@@ -172,4 +172,3 @@ Largest files
 
     Ok(())
 }
-
