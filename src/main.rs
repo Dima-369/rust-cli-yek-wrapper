@@ -8,29 +8,15 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
+mod cli;
+use crate::cli::Args;
+
 /// A struct that represents a single file's data from the yek JSON output.
 /// We use serde's `derive` macro to automatically handle deserialization.
 #[derive(Deserialize, Debug)]
 struct YekFile {
     filename: String,
     content: String,
-}
-
-/// Command line arguments for the yek-wrapper tool.
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Number of top files to display
-    #[arg(long, default_value_t = 9)]
-    top_file_count: usize,
-
-    /// Number of top directories to display
-    #[arg(long, default_value_t = 6)]
-    top_dir_count: usize,
-
-    /// Warn about large files by line count (highlight in orange)
-    #[arg(long, default_value_t = 300)]
-    warn_large_files_by_line_count: usize,
 }
 
 /// Approximate token estimation, assuming 4 characters per token.
@@ -41,9 +27,13 @@ pub fn estimate_tokens(text: &str) -> usize {
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    // --- Step 1: Execute `yek --json` and capture its output ---
-    let output = Command::new("yek")
-        .arg("--json")
+    // --- Step 1: Execute `yek --json` (or `yek --json .` in provided PATH) and capture its output ---
+    let mut cmd = Command::new("yek");
+    cmd.arg("--json");
+    if let Some(ref path) = args.path {
+        cmd.current_dir(path).arg(".");
+    }
+    let output = cmd
         .output()
         .context("Failed to execute `yek --json`. Is 'yek' in your PATH?")?;
 

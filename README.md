@@ -26,7 +26,10 @@ Largest files
 ```
 Command line arguments for the yek-wrapper tool
 
-Usage: yek-wrapper [OPTIONS]
+Usage: yek-wrapper [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]  Optional path to run `yek` in. If provided, runs `yek --json .` with this as the working directory.
 
 Options:
       --top-file-count <TOP_FILE_COUNT>
@@ -40,3 +43,9 @@ Options:
   -V, --version
           Print version
 ```
+
+Examples:
+- Default (current directory):
+  yek-wrapper
+- In another directory:
+  yek-wrapper ./some/project
