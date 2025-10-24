@@ -30,7 +30,9 @@ fn main() -> Result<()> {
     // If from_clipboard flag is set, read the path from clipboard and update args.path
     if args.from_clipboard {
         let mut clipboard = arboard::Clipboard::new().context("Failed to initialize clipboard.")?;
-        let clipboard_content = clipboard.get_text().context("Failed to read text from clipboard.")?;
+        let clipboard_content = clipboard
+            .get_text()
+            .context("Failed to read text from clipboard.")?;
         let trimmed_content = clipboard_content.trim().to_string();
         let clipboard_path = Path::new(&trimmed_content);
         args.path = Some(clipboard_path.to_path_buf());
@@ -41,6 +43,14 @@ fn main() -> Result<()> {
     cmd.arg("--json");
     let mut cmd_str = "yek --json".to_string();
     if let Some(ref path) = args.path {
+        // Check if the directory exists before setting it
+        if !path.exists() {
+            anyhow::bail!("Directory does not exist: {}", path.display());
+        }
+        if !path.is_dir() {
+            anyhow::bail!("Path is not a directory: {}", path.display());
+        }
+
         cmd.current_dir(path).arg(".");
         cmd_str.push_str(" .");
     }
@@ -49,12 +59,14 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to execute `{}`. Is 'yek' in your PATH?", cmd_str))?;
 
     if !output.status.success() {
-        // If the command failed, print stderr and exit.
+        // If the command failed, print both stdout and stderr and exit.
+        let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!(
-            "`{}` failed with status {}:\n{}",
+            "`{}` failed with status {}:\nstdout:\n{}\nstderr:\n{}",
             cmd_str,
             output.status,
+            stdout,
             stderr
         );
     }
