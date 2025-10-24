@@ -35,7 +35,22 @@ fn main() -> Result<()> {
             .context("Failed to read text from clipboard.")?;
         let trimmed_content = clipboard_content.trim().to_string();
         let clipboard_path = Path::new(&trimmed_content);
-        args.path = Some(clipboard_path.to_path_buf());
+
+        // If the clipboard content is a file, use its parent directory
+        let processed_path = if clipboard_path.is_file() {
+            if let Some(parent_dir) = clipboard_path.parent() {
+                parent_dir.to_path_buf()
+            } else {
+                anyhow::bail!(
+                    "Could not determine parent directory for file: {}",
+                    clipboard_path.display()
+                );
+            }
+        } else {
+            clipboard_path.to_path_buf()
+        };
+
+        args.path = Some(processed_path);
     }
 
     // --- Step 1: Execute `yek --json` (or `yek --json .` in provided PATH) and capture its output ---
@@ -43,15 +58,29 @@ fn main() -> Result<()> {
     cmd.arg("--json");
     let mut cmd_str = "yek --json".to_string();
     if let Some(ref path) = args.path {
+        // If the path is a file, use its parent directory
+        let effective_path = if path.is_file() {
+            if let Some(parent_dir) = path.parent() {
+                parent_dir.to_path_buf()
+            } else {
+                anyhow::bail!(
+                    "Could not determine parent directory for file: {}",
+                    path.display()
+                );
+            }
+        } else {
+            path.to_path_buf()
+        };
+
         // Check if the directory exists before setting it
-        if !path.exists() {
-            anyhow::bail!("Directory does not exist: {}", path.display());
+        if !effective_path.exists() {
+            anyhow::bail!("Directory does not exist: {}", effective_path.display());
         }
-        if !path.is_dir() {
-            anyhow::bail!("Path is not a directory: {}", path.display());
+        if !effective_path.is_dir() {
+            anyhow::bail!("Path is not a directory: {}", effective_path.display());
         }
 
-        cmd.current_dir(path).arg(".");
+        cmd.current_dir(&effective_path).arg(".");
         cmd_str.push_str(" .");
     }
     let output = cmd
