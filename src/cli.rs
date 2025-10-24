@@ -17,6 +17,10 @@ pub struct Args {
     #[arg(long, default_value_t = 300)]
     pub warn_large_files_by_line_count: usize,
 
+    /// Read path from clipboard and use it as the target directory for yek.
+    #[arg(long)]
+    pub from_clipboard: bool,
+
     /// Optional path to run `yek` in. If provided, runs `yek --json .` with this as the working directory.
     #[arg(value_name = "PATH")]
     pub path: Option<PathBuf>,

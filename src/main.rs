@@ -25,7 +25,16 @@ pub fn estimate_tokens(text: &str) -> usize {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    let mut args = Args::parse();
+
+    // If from_clipboard flag is set, read the path from clipboard and update args.path
+    if args.from_clipboard {
+        let mut clipboard = arboard::Clipboard::new().context("Failed to initialize clipboard.")?;
+        let clipboard_content = clipboard.get_text().context("Failed to read text from clipboard.")?;
+        let trimmed_content = clipboard_content.trim().to_string();
+        let clipboard_path = Path::new(&trimmed_content);
+        args.path = Some(clipboard_path.to_path_buf());
+    }
 
     // --- Step 1: Execute `yek --json` (or `yek --json .` in provided PATH) and capture its output ---
     let mut cmd = Command::new("yek");
