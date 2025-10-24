@@ -30,18 +30,21 @@ fn main() -> Result<()> {
     // --- Step 1: Execute `yek --json` (or `yek --json .` in provided PATH) and capture its output ---
     let mut cmd = Command::new("yek");
     cmd.arg("--json");
+    let mut cmd_str = "yek --json".to_string();
     if let Some(ref path) = args.path {
         cmd.current_dir(path).arg(".");
+        cmd_str.push_str(" .");
     }
     let output = cmd
         .output()
-        .context("Failed to execute `yek --json`. Is 'yek' in your PATH?")?;
+        .with_context(|| format!("Failed to execute `{}`. Is 'yek' in your PATH?", cmd_str))?;
 
     if !output.status.success() {
         // If the command failed, print stderr and exit.
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!(
-            "`yek --json` failed with status {}:\n{}",
+            "`{}` failed with status {}:\n{}",
+            cmd_str,
             output.status,
             stderr
         );
